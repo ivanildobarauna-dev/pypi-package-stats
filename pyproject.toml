@@ -19,7 +19,7 @@ datadog-api-client = "^2.29.0"
 pytest = "^8.3.3"
 python-dotenv = "^1.0.1"
 coverage = "^7.6.4"
-tqdm = "^4.66.5"
+tqdm = "^4.67.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

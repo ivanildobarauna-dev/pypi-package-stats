@@ -1,5 +1,5 @@
-from src.application.use_cases.send_metrics_use_case import SendPypiStatsUseCase
-from src.application.utils.logger_module import logger, log_extra_info, LogStatus
+from src.domain.use_cases.send_metrics_use_case import SendPypiStatsUseCase
+from src.infrastructure.utils.logger_module import logger, log_extra_info, LogStatus
 
 
 if __name__ == "__main__":

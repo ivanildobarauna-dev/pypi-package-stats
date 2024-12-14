@@ -1,25 +1,18 @@
 import os
-import time
+from pandas.core.frame import DataFrame
 from dotenv import load_dotenv
 from tqdm import tqdm
-from src.application.services.dw_service import DWService
-from src.application.services.send_metrics_service import SendMetricsService
-from src.adapter.bigquery_adapter import BigQueryAdapter
-from src.adapter.datadog_adapter import DataDogAPIAdapter
-from src.application.utils.logger_module import logger, log_extra_info, LogStatus
-
-from pandas.core.frame import DataFrame
-
+from src.infrastructure.services.dw_service import DWService
+from src.infrastructure.services.send_metrics_service import SendMetricsService
+from src.infrastructure.utils.logger_module import logger, log_extra_info, LogStatus
 
 load_dotenv()
 
 
 class SendPypiStatsUseCase:
     def __init__(self):
-        self.get_data_from_dw_service = DWService(datawarehouse=BigQueryAdapter())
-        self.send_metrics_service = SendMetricsService(
-            DataDogAPIAdapter(metric_name="pypi")
-        )
+        self.get_stats_service = DWService()
+        self.send_stats_service = SendMetricsService()
 
     def get_stats(self):
         query = f"""
@@ -32,11 +25,12 @@ class SendPypiStatsUseCase:
             INSTALLER_NAME,
             PYTHON_VERSION
             FROM {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
-            WHERE DTTM >= DATETIME_SUB(CURRENT_DATETIME, INTERVAL 2 DAY)
+            WHERE DTTM >= DATETIME_SUB(CURRENT_DATETIME, INTERVAL 120 DAY)
             AND TRUE QUALIFY (ROW_NUMBER() OVER(PARTITION BY DTTM, COUNTRY_CODE, PROJECT, PACKAGE_VERSION, INSTALLER_NAME, PYTHON_VERSION ORDER BY DTTM ASC)) = 1
             AND NOT PUSHED
+            limit 1
             """
-        return self.get_data_from_dw_service.query_to_dataframe(query=query)
+        return self.get_stats_service.query_to_dataframe(query=query)
 
     def send_stats(self, df: DataFrame):
         if len(df) == 0:
@@ -53,7 +47,7 @@ class SendPypiStatsUseCase:
                 f"python_version:{row['PYTHON_VERSION']}",
             ]
 
-            result, err = self.send_metrics_service.send(
+            result, err = self.send_stats_service.send(
                 tags=tags,
                 value=1,
                 timestamp=row["DTTM"],
@@ -92,4 +86,4 @@ class SendPypiStatsUseCase:
             and PROJECT = '{project_name}'
             AND NOT PUSHED
             """
-        return self.get_data_from_dw_service.query_execute(query=query)
+        return self.get_stats_service.query_execute(query=query)

@@ -1,19 +1,16 @@
-import os
+from typing import Optional, Tuple
 from google.cloud import bigquery
 from pandas.core.frame import DataFrame
-from typing import Type, Optional, Tuple
-from src.application.ports.datawarehouse_interface import DataWarehousePort
-from src.application.utils.logger_module import logger, log_extra_info, LogStatus
+from src.infrastructure.utils.logger_module import logger, log_extra_info, LogStatus
 
 
-class BigQueryAdapter(DataWarehousePort):
+class BigQuery:
     """
     A class used to represent a BigQueryAdapter
-
     """
-
     def __init__(self):
         self.bigquery_conn = bigquery.Client()
+
 
     def query_execute(self, query: str) -> Tuple[bigquery.QueryJob, Optional[str]]:
         """
@@ -55,3 +52,15 @@ class BigQueryAdapter(DataWarehousePort):
             return df, str(e)
 
         return df, None
+
+
+
+class DWService:
+    def __init__(self):
+        self.datawarehouse = BigQuery()
+
+    def query_execute(self, query: str):
+        return self.datawarehouse.query_execute(query)
+
+    def query_to_dataframe(self, query: str):
+        return self.datawarehouse.query_to_dataframe(query)

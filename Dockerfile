@@ -25,4 +25,5 @@ RUN poetry config virtualenvs.create false \
     && poetry install
 
 # Entry point para o aplicativo src/__main.py__
-ENTRYPOINT ["python", "src/__main__.py"]
+ENTRYPOINT ["python", "__main__.py"]
+# ENTRYPOINT [ "/bin/bash" ]

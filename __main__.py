@@ -6,7 +6,7 @@ from src.infrastructure.utils.logger_module import logger, log_extra_info, LogSt
 
 if __name__ == "__main__":
     tracer = tracing_service.get_tracer()
-    with tracer.start_as_current_span("application.use_case") as span:
+    with tracer.start_as_current_span("application.controller") as span:
         try:
             send_pypi_stats_use_case = SendPypiStatsUseCase()
         except Exception as e:

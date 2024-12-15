@@ -16,8 +16,9 @@ class BigQuery:
         self.tracer = self.tracing_service.get_tracer()
 
     def query_execute(self, query: str) -> Tuple[bigquery.QueryJob, Optional[str]]:
-        with self.tracer.start_as_current_span("bigquery-query_execute") as span:
-            span.set_attribute("bigquery.query", query)
+        with self.tracer.start_as_current_span("bigquery.query_execute") as span:
+            span.set_attribute("db.system", "bigquery")
+            span.set_attribute("db.statement", query)
             """
             Get data from BigQuery
             """
@@ -42,8 +43,9 @@ class BigQuery:
             return query_job, None
 
     def query_to_dataframe(self, query: str) -> Tuple[DataFrame, Optional[str]]:
-        with self.tracer.start_as_current_span("bigquery-query_to_dataframe") as span:
-            span.set_attribute("bigquery.query", query)
+        with self.tracer.start_as_current_span("bigquery.query_to_dataframe") as span:
+            span.set_attribute("db.system", "bigquery")
+            span.set_attribute("db.statement", query)
             _query = query
 
             df = DataFrame()
@@ -80,12 +82,12 @@ class DWService:
         self.tracer = self.tracing_service.get_tracer()
 
     def query_to_dataframe(self, query: str):
-        with self.tracer.start_as_current_span("services-dw-query_to_dataframe") as span:
+        with self.tracer.start_as_current_span("services.dw.query_to_dataframe") as span:
             result = self.datawarehouse.query_to_dataframe(query)
         return result
 
     def update_downloads(self, downloads_list: list, project_name: str):
-        with self.tracer.start_as_current_span("services-dw-update_downloads") as span:
+        with self.tracer.start_as_current_span("services.dw.update_downloads") as span:
             span.set_attribute("sended_rows", len(downloads_list))
             downloads_list_str = ",".join(map(str, downloads_list))
 

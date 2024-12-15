@@ -18,7 +18,7 @@ class SendPypiStatsUseCase:
         self.tracer = self.tracing_service.get_tracer()
 
     def get_stats(self):
-        with self.tracer.start_as_current_span("use_cases-get_stats") as span:
+        with self.tracer.start_as_current_span("use_cases.get_stats") as span:
             query = f"""
                 SELECT
                 DOWNLOAD_ID,

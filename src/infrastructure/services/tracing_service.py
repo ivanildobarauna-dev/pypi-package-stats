@@ -5,11 +5,12 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from src.domain.dto.application_attributes import ApplicationAttributes
 
+
 class TracingService:
     def __init__(self):
         self._app_atrributes = ApplicationAttributes()
         self.resource = Resource.create(
-            attributes= {
+            attributes={
                 "service.name": self._app_atrributes.application_name,
                 "service.version": self._app_atrributes.application_version,
                 "deployment.environment": self._app_atrributes.environment,
@@ -30,10 +31,8 @@ class _SpanProcessor:
         self._setup()
 
     def _setup(self):
-        exporter = OTLPSpanExporter(endpoint="node-metrics-ba28.ivanildobarauna.dev:4318", insecure=True)
+        exporter = OTLPSpanExporter(
+            endpoint="node-metrics-ba28.ivanildobarauna.dev:4318", insecure=True
+        )
         processor = SimpleSpanProcessor(exporter)
         trace.get_tracer_provider().add_span_processor(processor)
-        SimpleSpanProcessor(self._exporter())
-
-
-

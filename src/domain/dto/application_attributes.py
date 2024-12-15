@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 from subprocess import run
 
-result = run(["poetry version"], capture_output=True, text=True)
+result = run(["poetry", "version"], capture_output=True, text=True)
 
 
 @dataclass

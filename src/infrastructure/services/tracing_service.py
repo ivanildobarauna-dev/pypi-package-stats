@@ -9,6 +9,7 @@ from src.domain.dto.application_attributes import ApplicationAttributes
 class TracingService:
     def __init__(self):
         self._app_atrributes = ApplicationAttributes()
+        self.tracer_name = "job-pypi-stats"
         self.resource = Resource.create(
             attributes={
                 "service.name": self._app_atrributes.application_name,
@@ -18,12 +19,14 @@ class TracingService:
                 "container.image": self._app_atrributes.container_image,
             }
         )
-        self.trace_provider = TracerProvider(resource=self.resource)
+        self.trace_provider = TracerProvider(resource=self.resource, shutdown_on_exit=False)
         trace.set_tracer_provider(self.trace_provider)
         self.span_processor = _SpanProcessor()
+        self.span_status = trace.StatusCode
 
-    def new_trace(self):
-        return trace.get_tracer(__name__)
+
+    def get_tracer(self):
+        return trace.get_tracer(self.tracer_name)
 
 
 class _SpanProcessor:

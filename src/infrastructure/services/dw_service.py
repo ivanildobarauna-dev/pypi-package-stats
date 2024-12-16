@@ -1,3 +1,4 @@
+from opentelemetry import trace
 import os
 from typing import Optional, Tuple
 from google.cloud import bigquery
@@ -10,6 +11,7 @@ class BigQuery:
     """
     A class used to represent a BigQueryAdapter
     """
+
     def __init__(self):
         self.bigquery_conn = bigquery.Client()
         self.tracing_service = tracing_service
@@ -28,8 +30,9 @@ class BigQuery:
             result = query_job.result()
 
             span.set_attribute("bigquery.job.total_rows", result.total_rows)
-            span.set_attribute("bigquery.job.affected_rows", result.num_dml_affected_rows)
-
+            span.set_attribute(
+                "bigquery.job.affected_rows", result.num_dml_affected_rows
+            )
 
             if query_job.errors:
                 span.set_attribute("bigquery.job.error", str(query_job.error_result))
@@ -74,7 +77,6 @@ class BigQuery:
             return df, None
 
 
-
 class DWService:
     def __init__(self):
         self.datawarehouse = BigQuery()
@@ -82,22 +84,44 @@ class DWService:
         self.tracer = self.tracing_service.get_tracer()
 
     def query_to_dataframe(self, query: str):
-        with self.tracer.start_as_current_span("services.dw.query_to_dataframe") as span:
-            result = self.datawarehouse.query_to_dataframe(query)
+        current_span = trace.get_current_span()
+        current_span.add_event(
+            "dw_service",
+            {"method": "query_to_dataframe", "status": "started"},
+        )
+        result = self.datawarehouse.query_to_dataframe(query)
+        if result:
+            current_span.add_event(
+                "dw_service",
+                {"method": "update_downloads", "status": "done"},
+            )
+
         return result
 
     def update_downloads(self, downloads_list: list, project_name: str):
-        with self.tracer.start_as_current_span("services.dw.update_downloads") as span:
-            span.set_attribute("sended_rows", len(downloads_list))
-            downloads_list_str = ",".join(map(str, downloads_list))
+        current_span = trace.get_current_span()
+        current_span.add_event(
+            "dw_service",
+            {
+                "method": "update_downloads",
+                "status": "started",
+                "rows_to_update": len(downloads_list),
+            },
+        )
 
-            query = f"""
-                UPDATE {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
-                SET PUSHED = true
-                WHERE DOWNLOAD_ID in ({downloads_list_str})
-                and PROJECT = '{project_name}'
-                AND NOT PUSHED
-                """
-            result =  self.datawarehouse.query_execute(query)
-            return result
+        downloads_list_str = ",".join(map(str, downloads_list))
 
+        query = f"""
+            UPDATE {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
+            SET PUSHED = true
+            WHERE DOWNLOAD_ID in ({downloads_list_str})
+            and PROJECT = '{project_name}'
+            AND NOT PUSHED
+            """
+        result = self.datawarehouse.query_execute(query)
+
+        if result:
+            current_span.add_event(
+                "dw_service", {"method": "update_downloads", "status": "done"}
+            )
+        return result

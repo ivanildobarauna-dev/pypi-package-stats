@@ -1,5 +1,6 @@
 name: Build and Deploy to Cloud Run Job
 
+
 on:
   push:
     branches:
@@ -9,6 +10,7 @@ on:
 env:
   PROJECT_ID: pypi-package-analysis-437421
   GAR_LOCATION: us-east4
+  REPO_NAME: pypi-package-analysis-ar
   JOB_NAME: pypi-package-analysis-job
   REGION: us-east1
 
@@ -36,15 +38,15 @@ jobs:
 
       - name: Build Container
         run: |-
-          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}/${{ env.JOB_NAME }}:${{ github.sha }} ./
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/application-job:${{ github.sha }} ./
 
       - name: Push Container
-        run: docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}/${{ env.JOB_NAME }}:${{ github.sha }}
+        run: docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/application-job:${{ github.sha }}
 
       - name: Deploy or Update Cloud Run Job
         run: |-
           gcloud run jobs update ${{ env.JOB_NAME }} \
-              --image=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}/${{ env.JOB_NAME }}:${{ github.sha }} \
+              --image=${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/application-job:${{ github.sha }} \
               --region=${{ env.REGION }} \
               --task-timeout=600s \
               --max-retries=3

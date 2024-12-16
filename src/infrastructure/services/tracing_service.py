@@ -1,3 +1,4 @@
+import os
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import Resource
@@ -37,8 +38,7 @@ class _SpanProcessor:
         self._setup()
 
     def _setup(self):
-        exporter = OTLPSpanExporter(
-            endpoint="node-metrics-ba28.ivanildobarauna.dev:4318", insecure=True
-        )
+        exporter_address = str(os.getenv("EXPORTER_ADDRESS")) + ":4318"
+        exporter = OTLPSpanExporter(endpoint=exporter_address, insecure=True)
         processor = SimpleSpanProcessor(exporter)
         trace.get_tracer_provider().add_span_processor(processor)

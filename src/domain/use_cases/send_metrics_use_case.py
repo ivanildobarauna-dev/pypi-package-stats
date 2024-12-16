@@ -1,13 +1,10 @@
 import os
 from pandas.core.frame import DataFrame
-from dotenv import load_dotenv
 from tqdm import tqdm
 from src.infrastructure.services.dw_service import DWService
 from src.infrastructure.services.send_metrics_service import SendMetricsService
 from src.infrastructure.utils.logger_module import logger, log_extra_info, LogStatus
 from src.infrastructure import tracing_service
-
-load_dotenv()
 
 
 class SendPypiStatsUseCase:
@@ -29,10 +26,9 @@ class SendPypiStatsUseCase:
                 INSTALLER_NAME,
                 PYTHON_VERSION
                 FROM {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
-                WHERE DTTM >= DATETIME_SUB(CURRENT_DATETIME, INTERVAL 120 DAY)
+                WHERE DTTM >= DATETIME_SUB(CURRENT_DATETIME, INTERVAL 2 DAY)
                 AND TRUE QUALIFY (ROW_NUMBER() OVER(PARTITION BY DTTM, COUNTRY_CODE, PROJECT, PACKAGE_VERSION, INSTALLER_NAME, PYTHON_VERSION ORDER BY DTTM ASC)) = 1
                 AND NOT PUSHED
-                limit 10
                 """
             df = self.dw_service.query_to_dataframe(query=query)
             return df

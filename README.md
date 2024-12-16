@@ -2,7 +2,7 @@
 ![Project Status](https://img.shields.io/badge/status-done-green?style=for-the-badge&logo=github)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&logo=mit)
 
-[![BigQuery Executor](https://img.shields.io/github/actions/workflow/status/IvanildoBarauna/bigquery-execute/pypi-analysis.yaml?&style=for-the-badge&logo=google&cacheSeconds=60&label=BigQuery-Executor)](https://github.com/IvanildoBarauna/bigquery-execute/actions/workflows/pypi-analysis.yaml)
+[![BigQuery Executor](https://img.shields.io/github/actions/workflow/status/ivanildobarauna-dev/pypi-package-stats/job-deploy.yaml?&style=for-the-badge&logo=google&cacheSeconds=60&label=Deploy)](https://github.com/ivanildobarauna-dev/pypi-package-stats/job-deploy.yaml)
 
 ## Project Summary
 

@@ -17,26 +17,51 @@ class BigQuery:
         self.tracing_service = tracing_service
         self.tracer = self.tracing_service.get_tracer()
 
-    def query_execute(self, query: str) -> Tuple[bigquery.QueryJob, Optional[str]]:
+    def update_downloads(
+        self, downloads_list: list, project_name: str
+    ) -> Tuple[bigquery.QueryJob, Optional[str]]:
         with self.tracer.start_as_current_span("bigquery.query_execute") as span:
             span.set_attribute("db.system", "bigquery")
             span.set_attribute("db.statement", query)
-            """
-            Get data from BigQuery
-            """
-            # Perform a query.
-            _query = query
-            query_job = self.bigquery_conn.query(_query)
-            result = query_job.result()
 
-            span.set_attribute("bigquery.job.total_rows", result.total_rows)
-            span.set_attribute(
-                "bigquery.job.affected_rows", result.num_dml_affected_rows
+            span.add_event(
+                "metadata",
+                {
+                    "status": "started",
+                    "rows_to_update": len(downloads_list),
+                },
             )
 
+            downloads_list_str = ",".join(map(str, downloads_list))
+
+            query = f"""
+                UPDATE {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
+                SET PUSHED = true
+                WHERE DOWNLOAD_ID in ({downloads_list_str})
+                and PROJECT = '{project_name}'
+                AND NOT PUSHED
+                """
+
+            query_job = self.bigquery_conn.query(query)
+            result = query_job.result()
+
+            if result:
+                span.add_event(
+                    "metadata",
+                    {
+                        "status": "started",
+                        "updated_rows": result.num_dml_affected_rows,
+                    },
+                )
+
             if query_job.errors:
-                span.set_attribute("bigquery.job.error", str(query_job.error_result))
-                span.set_status(self.tracing_service.span_status.ERROR)
+                span.set_status(
+                    self.tracing_service.span_status.ERROR, "Query job failed"
+                )
+                span.add_event(
+                    "metadata",
+                    {"status": "error", "error": str(query_job.error_result)},
+                )
                 logger.error(
                     f"Error executing query: {str(query_job.error_result)}",
                     extra=log_extra_info(status=LogStatus.ERROR),

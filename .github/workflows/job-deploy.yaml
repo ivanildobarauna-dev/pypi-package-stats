@@ -12,7 +12,7 @@ env:
   GAR_LOCATION: us-east4
   REPO_NAME: pypi-package-analysis-ar
   JOB_NAME: pypi-package-analysis-job
-  REGION: us-east1
+  REGION: us-east4
 
 jobs:
   deploy:

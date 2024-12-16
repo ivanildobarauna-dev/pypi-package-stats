@@ -51,3 +51,6 @@ jobs:
 
       - name: Show Output
         run: echo "Cloud Run Job ${{ env.JOB_NAME }} deployed/updated successfully in region ${{ env.REGION }}"
+
+    environment:
+      name: Production

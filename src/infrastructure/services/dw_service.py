@@ -22,7 +22,6 @@ class BigQuery:
     ) -> Tuple[bigquery.QueryJob, Optional[str]]:
         with self.tracer.start_as_current_span("bigquery.query_execute") as span:
             span.set_attribute("db.system", "bigquery")
-            span.set_attribute("db.statement", query)
 
             span.add_event(
                 "metadata",
@@ -41,6 +40,8 @@ class BigQuery:
                 and PROJECT = '{project_name}'
                 AND NOT PUSHED
                 """
+
+            span.set_attribute("db.statement", query)
 
             query_job = self.bigquery_conn.query(query)
             result = query_job.result()
@@ -114,6 +115,7 @@ class DWService:
             "dw_service",
             {"method": "query_to_dataframe", "status": "started"},
         )
+
         result = self.datawarehouse.query_to_dataframe(query)
         if result:
             current_span.add_event(
@@ -124,29 +126,4 @@ class DWService:
         return result
 
     def update_downloads(self, downloads_list: list, project_name: str):
-        current_span = trace.get_current_span()
-        current_span.add_event(
-            "dw_service",
-            {
-                "method": "update_downloads",
-                "status": "started",
-                "rows_to_update": len(downloads_list),
-            },
-        )
-
-        downloads_list_str = ",".join(map(str, downloads_list))
-
-        query = f"""
-            UPDATE {os.getenv('PROJECT_ID')}.STG.PYPI_PROJ_DOWNLOADS
-            SET PUSHED = true
-            WHERE DOWNLOAD_ID in ({downloads_list_str})
-            and PROJECT = '{project_name}'
-            AND NOT PUSHED
-            """
-        result = self.datawarehouse.query_execute(query)
-
-        if result:
-            current_span.add_event(
-                "dw_service", {"method": "update_downloads", "status": "done"}
-            )
-        return result
+        return self.datawarehouse.update_downloads(downloads_list, project_name)

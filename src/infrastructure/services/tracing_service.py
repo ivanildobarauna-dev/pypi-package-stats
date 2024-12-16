@@ -3,6 +3,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from src.domain.dto.application_attributes import ApplicationAttributes
 
 
@@ -19,11 +20,13 @@ class TracingService:
                 "container.image": self._app_atrributes.container_image,
             }
         )
-        self.trace_provider = TracerProvider(resource=self.resource, shutdown_on_exit=False)
+        self.trace_provider = TracerProvider(
+            resource=self.resource, shutdown_on_exit=False
+        )
         trace.set_tracer_provider(self.trace_provider)
         self.span_processor = _SpanProcessor()
         self.span_status = trace.StatusCode
-
+        RequestsInstrumentor().instrument()
 
     def get_tracer(self):
         return trace.get_tracer(self.tracer_name)

@@ -17,8 +17,6 @@ class TracingService:
                 "service.name": self._app_atrributes.application_name,
                 "service.version": self._app_atrributes.application_version,
                 "deployment.environment": self._app_atrributes.environment,
-                "container.id": self._app_atrributes.container_id,
-                "container.image": self._app_atrributes.container_image,
             }
         )
         self.trace_provider = TracerProvider(

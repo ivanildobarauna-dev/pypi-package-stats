@@ -2,7 +2,7 @@ import os
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from src.domain.dto.application_attributes import ApplicationAttributes
@@ -36,7 +36,7 @@ class _SpanProcessor:
         self._setup()
 
     def _setup(self):
-        exporter_address = str(os.getenv("EXPORTER_ADDRESS")) + ":4318"
-        exporter = OTLPSpanExporter(endpoint=exporter_address, insecure=True)
+        exporter_address = str(os.getenv("EXPORTER_ADDRESS")) + ":4318/v1/traces"
+        exporter = OTLPSpanExporter(endpoint=exporter_address)
         processor = SimpleSpanProcessor(exporter)
         trace.get_tracer_provider().add_span_processor(processor)

@@ -36,7 +36,7 @@ class _SpanProcessor:
         self._setup()
 
     def _setup(self):
-        exporter_address = str(os.getenv("EXPORTER_ADDRESS")) + ":4318/v1/traces"
+        exporter_address = str(os.getenv("EXPORTER_ADDRESS"))
         exporter = OTLPSpanExporter(endpoint=exporter_address)
         processor = SimpleSpanProcessor(exporter)
         trace.get_tracer_provider().add_span_processor(processor)
